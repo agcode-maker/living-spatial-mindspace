@@ -1,21 +1,13 @@
 import { Canvas } from '@react-three/fiber';
-import { Grid, Sky } from '@react-three/drei';
+import { Grid } from '@react-three/drei';
 import { useWorld } from '../state/store.js';
 import FlightControls from './FlightControls.jsx';
 import KnowledgeObject from './KnowledgeObject.jsx';
 import Links from './Links.jsx';
-
-// Where a newly spawned object appears - roughly in front of the camera.
-// (Placeholder placement logic; Day 2 will raycast from the camera instead.)
-function randomSpawnPoint() {
-  const angle = Math.random() * Math.PI * 2;
-  const radius = 1.5 + Math.random() * 2;
-  return [Math.cos(angle) * radius, 1.4 + Math.random() * 0.6, Math.sin(angle) * radius];
-}
+import Interactions from './Interactions.jsx';
 
 export default function World() {
   const objects = useWorld((s) => s.objects);
-  const addObject = useWorld((s) => s.addObject);
 
   return (
     <Canvas camera={{ position: [0, 1.6, 6], fov: 65 }} shadows>
@@ -38,9 +30,8 @@ export default function World() {
         <KnowledgeObject key={obj.id} obj={obj} />
       ))}
 
+      <Interactions />
       <FlightControls />
     </Canvas>
   );
 }
-
-export { randomSpawnPoint };

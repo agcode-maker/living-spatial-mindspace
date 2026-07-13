@@ -1,43 +1,31 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import { useWorld } from '../state/store.js';
 
 export default function KnowledgeObject({ obj }) {
   const meshRef = useRef();
-  const [hovered, setHovered] = useState(false);
-  const select = useWorld((s) => s.select);
-  const selectedId = useWorld((s) => s.selectedId);
+  const targetedId = useWorld((s) => s.targetedId);
+  const carryingId = useWorld((s) => s.carryingId);
   const linkFrom = useWorld((s) => s.linkFrom);
-  const beginOrCompleteLink = useWorld((s) => s.beginOrCompleteLink);
-  const isSelected = selectedId === obj.id;
+  const isTargeted = targetedId === obj.id;
+  const isCarried = carryingId === obj.id;
   const isLinkSource = linkFrom === obj.id;
 
-  // Gentle idle float — makes the space feel alive rather than static.
+  // Gentle idle float when at rest - makes the space feel alive.
+  // Skipped while carried, since position is being driven every frame already.
   useFrame(({ clock }) => {
-    if (!meshRef.current) return;
+    if (!meshRef.current || isCarried) return;
     const t = clock.getElapsedTime();
-    meshRef.current.position.y = obj.position[1] + Math.sin(t * 0.8 + obj.position[0]) * 0.06;
+    meshRef.current.position.y = Math.sin(t * 0.8 + obj.position[0]) * 0.06;
   });
 
-  function handleClick(e) {
-    e.stopPropagation();
-    if (e.shiftKey) {
-      beginOrCompleteLink(obj.id);
-    } else {
-      select(obj.id);
-    }
-  }
+  const emissiveIntensity = isCarried || isLinkSource ? 1 : isTargeted ? 0.7 : 0.25;
+  const scale = isTargeted || isCarried ? 1.15 : 1;
 
   return (
     <group position={obj.position}>
-      <mesh
-        ref={meshRef}
-        onClick={handleClick}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => setHovered(false)}
-        scale={hovered ? 1.12 : 1}
-      >
+      <mesh ref={meshRef} userData={{ objId: obj.id }} scale={scale}>
         {obj.type === 'note' && <boxGeometry args={[0.5, 0.35, 0.05]} />}
         {obj.type === 'task' && <octahedronGeometry args={[0.3, 0]} />}
         {obj.type === 'idea' && <sphereGeometry args={[0.28, 16, 16]} />}
@@ -45,7 +33,7 @@ export default function KnowledgeObject({ obj }) {
         <meshStandardMaterial
           color={obj.color}
           emissive={obj.color}
-          emissiveIntensity={isSelected || isLinkSource ? 0.9 : hovered ? 0.5 : 0.25}
+          emissiveIntensity={emissiveIntensity}
           roughness={0.4}
         />
       </mesh>

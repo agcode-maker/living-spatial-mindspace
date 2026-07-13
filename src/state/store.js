@@ -14,13 +14,15 @@ export const useWorld = create((set, get) => ({
   // 'menu' | 'exploring'
   sessionState: 'menu',
   objects: saved?.objects ?? [],
-  selectedId: null,
+
+  targetedId: null, // whatever the crosshair is currently over
+  carryingId: null, // object currently being carried in front of the camera
   linkFrom: null, // id of object waiting to be connected to a second one
 
-  enterWorld: () => set({ sessionState: 'exploring' }),
+  enterWorld: () => set({ sessionState: 'exploring', targetedId: null, carryingId: null, linkFrom: null }),
   returnToMenu: () => {
     get().persist();
-    set({ sessionState: 'menu' });
+    set({ sessionState: 'menu', targetedId: null, carryingId: null, linkFrom: null });
   },
 
   addObject: (type, position) => {
@@ -38,6 +40,7 @@ export const useWorld = create((set, get) => ({
     return obj.id;
   },
 
+  // Persists immediately - use for discrete edits (rename, link, etc).
   updateObject: (id, patch) => {
     set((s) => ({
       objects: s.objects.map((o) => (o.id === id ? { ...o, ...patch } : o)),
@@ -45,20 +48,36 @@ export const useWorld = create((set, get) => ({
     get().persist();
   },
 
+  // Does NOT persist - used every frame while an object is being carried,
+  // so we're not writing to disk/localStorage 60 times a second. persist()
+  // is called once when the object is dropped instead.
+  moveObjectLive: (id, position) => {
+    set((s) => ({
+      objects: s.objects.map((o) => (o.id === id ? { ...o, position } : o)),
+    }));
+  },
+
   deleteObject: (id) => {
     set((s) => ({
       objects: s.objects
         .filter((o) => o.id !== id)
         .map((o) => ({ ...o, links: o.links.filter((l) => l !== id) })),
-      selectedId: s.selectedId === id ? null : s.selectedId,
+      targetedId: s.targetedId === id ? null : s.targetedId,
+      carryingId: s.carryingId === id ? null : s.carryingId,
+      linkFrom: s.linkFrom === id ? null : s.linkFrom,
     }));
     get().persist();
   },
 
-  select: (id) => set({ selectedId: id }),
+  setTargeted: (id) => set({ targetedId: id }),
+  pickUp: (id) => set({ carryingId: id }),
+  drop: () => {
+    get().persist();
+    set({ carryingId: null });
+  },
 
-  // Called when the user wants to draw a link. First click sets linkFrom,
-  // second click on a different object completes the link both ways.
+  // Called when the user wants to draw a link. First press sets linkFrom,
+  // a second press on a different object completes the link both ways.
   beginOrCompleteLink: (id) => {
     const { linkFrom, objects } = get();
     if (!linkFrom) {
@@ -83,7 +102,7 @@ export const useWorld = create((set, get) => ({
   cancelLink: () => set({ linkFrom: null }),
 
   resetWorld: () => {
-    set({ objects: [], selectedId: null, linkFrom: null });
+    set({ objects: [], targetedId: null, carryingId: null, linkFrom: null });
     get().persist();
   },
 
