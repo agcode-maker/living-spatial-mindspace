@@ -20,12 +20,13 @@ export default function Interactions() {
   const drop = useWorld((s) => s.drop);
   const moveObjectLive = useWorld((s) => s.moveObjectLive);
   const deleteObject = useWorld((s) => s.deleteObject);
-  const updateObject = useWorld((s) => s.updateObject);
   const beginOrCompleteLink = useWorld((s) => s.beginOrCompleteLink);
+  const openEditor = useWorld((s) => s.openEditor);
 
   // Every frame: raycast straight out from the crosshair to find what's
   // being looked at, and keep any carried object glued in front of the camera.
   useFrame(() => {
+    if (useWorld.getState().editingId) return;
     raycaster.current.setFromCamera({ x: 0, y: 0 }, camera);
     const hits = raycaster.current.intersectObjects(scene.children, true);
     const hit = hits.find((h) => h.object.userData?.objId && h.distance < TARGET_DISTANCE);
@@ -38,6 +39,10 @@ export default function Interactions() {
 
   useEffect(() => {
     function onKeyDown(e) {
+      // While the rename panel is open, let the input field handle keys -
+      // don't spawn objects, move objects, or fly the camera.
+      if (useWorld.getState().editingId) return;
+
       if (TYPE_KEYS[e.code]) {
         addObject(TYPE_KEYS[e.code], pointInFrontOfCamera(camera, 2.5));
         return;
@@ -60,14 +65,13 @@ export default function Interactions() {
       if (e.code === 'KeyR') {
         const id = carryingId ?? targetedId;
         if (!id) return;
-        const obj = useWorld.getState().objects.find((o) => o.id === id);
-        const next = window.prompt('Rename this object:', obj?.label ?? '');
-        if (next) updateObject(id, { label: next });
+        document.exitPointerLock?.();
+        openEditor(id);
       }
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [camera, carryingId, targetedId, addObject, pickUp, drop, beginOrCompleteLink, deleteObject, updateObject]);
+  }, [camera, carryingId, targetedId, addObject, pickUp, drop, beginOrCompleteLink, deleteObject, openEditor]);
 
   return null;
 }

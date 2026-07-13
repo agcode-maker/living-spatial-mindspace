@@ -18,12 +18,20 @@ export const useWorld = create((set, get) => ({
   targetedId: null, // whatever the crosshair is currently over
   carryingId: null, // object currently being carried in front of the camera
   linkFrom: null, // id of object waiting to be connected to a second one
+  editingId: null, // object currently open in the rename panel
+  viewMode: 'first-person', // 'first-person' | 'constellation'
 
-  enterWorld: () => set({ sessionState: 'exploring', targetedId: null, carryingId: null, linkFrom: null }),
+  enterWorld: () => set({ sessionState: 'exploring', targetedId: null, carryingId: null, linkFrom: null, editingId: null, viewMode: 'first-person' }),
   returnToMenu: () => {
     get().persist();
-    set({ sessionState: 'menu', targetedId: null, carryingId: null, linkFrom: null });
+    set({ sessionState: 'menu', targetedId: null, carryingId: null, linkFrom: null, editingId: null, viewMode: 'first-person' });
   },
+
+  openEditor: (id) => set({ editingId: id }),
+  closeEditor: () => set({ editingId: null }),
+
+  toggleViewMode: () =>
+    set((s) => ({ viewMode: s.viewMode === 'first-person' ? 'constellation' : 'first-person' })),
 
   addObject: (type, position) => {
     const obj = {

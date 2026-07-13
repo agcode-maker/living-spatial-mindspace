@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber';
-import { Grid } from '@react-three/drei';
+import { Grid, PerspectiveCamera, OrbitControls } from '@react-three/drei';
 import { useWorld } from '../state/store.js';
 import FlightControls from './FlightControls.jsx';
 import KnowledgeObject from './KnowledgeObject.jsx';
@@ -8,6 +8,7 @@ import Interactions from './Interactions.jsx';
 
 export default function World() {
   const objects = useWorld((s) => s.objects);
+  const viewMode = useWorld((s) => s.viewMode);
 
   return (
     <Canvas camera={{ position: [0, 1.6, 6], fov: 65 }} shadows>
@@ -30,8 +31,20 @@ export default function World() {
         <KnowledgeObject key={obj.id} obj={obj} />
       ))}
 
-      <Interactions />
-      <FlightControls />
+      {viewMode === 'first-person' ? (
+        <>
+          <Interactions />
+          <FlightControls />
+        </>
+      ) : (
+        <>
+          {/* A separate camera + free-orbit controls for the bird's-eye
+              constellation view, so it never fights the pointer-locked
+              first-person controls. */}
+          <PerspectiveCamera makeDefault position={[0, 16, 8]} fov={50} />
+          <OrbitControls target={[0, 0, 0]} enableDamping dampingFactor={0.08} />
+        </>
+      )}
     </Canvas>
   );
 }

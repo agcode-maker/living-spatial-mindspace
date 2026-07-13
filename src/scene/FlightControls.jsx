@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { PointerLockControls } from '@react-three/drei';
 import * as THREE from 'three';
+import { useWorld } from '../state/store.js';
 
 const SPEED = 4.2;
 
@@ -26,6 +27,7 @@ export default function FlightControls() {
   const move = new THREE.Vector3();
 
   useFrame((_, delta) => {
+    if (useWorld.getState().editingId) return;
     const k = keys.current;
     camera.getWorldDirection(forward);
     forward.y = 0;

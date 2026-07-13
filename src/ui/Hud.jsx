@@ -5,9 +5,16 @@ export default function Hud() {
   const returnToMenu = useWorld((s) => s.returnToMenu);
   const linkFrom = useWorld((s) => s.linkFrom);
   const cancelLink = useWorld((s) => s.cancelLink);
+  const toggleViewMode = useWorld((s) => s.toggleViewMode);
+  const viewMode = useWorld((s) => s.viewMode);
 
   useEffect(() => {
     function onKeyDown(e) {
+      if (useWorld.getState().editingId) return;
+      if (e.code === 'KeyC') {
+        toggleViewMode();
+        return;
+      }
       if (e.code === 'Escape') {
         if (linkFrom) cancelLink();
         else returnToMenu();
@@ -15,15 +22,22 @@ export default function Hud() {
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [returnToMenu, linkFrom, cancelLink]);
+  }, [returnToMenu, linkFrom, cancelLink, toggleViewMode]);
 
   return (
     <>
-      <div className="crosshair" />
+      {viewMode === 'first-person' && <div className="crosshair" />}
       <div className="hint">
-        WASD move · space/shift up/down · click to look around{'\n'}
-        1 note · 2 task · 3 idea · 4 image · E pick up/drop · L link · R rename · backspace delete · esc menu
-        {linkFrom && ' — linking: look at a second object and press L'}
+        {viewMode === 'first-person' ? (
+          <>
+            WASD move · space/shift up/down · click to look around{'\n'}
+            1 note · 2 task · 3 idea · 4 image · E pick up/drop · L link · R rename · backspace delete{'\n'}
+            C constellation view · esc menu
+            {linkFrom && ' — linking: look at a second object and press L'}
+          </>
+        ) : (
+          <>drag to orbit · scroll to zoom · C back to first-person · esc menu</>
+        )}
       </div>
     </>
   );
