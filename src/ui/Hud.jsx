@@ -12,6 +12,7 @@ export default function Hud() {
     function onKeyDown(e) {
       if (useWorld.getState().editingId) return;
       if (e.code === 'KeyC') {
+        document.exitPointerLock?.();
         toggleViewMode();
         return;
       }
