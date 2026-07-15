@@ -43,11 +43,11 @@ export default function KnowledgeObject({ obj }) {
     }
   });
 
-  const scale = isTargeted || isCarried ? 1.15 : 1;
+  const highlightScale = isTargeted || isCarried ? 1.15 : 1;
 
   return (
-    <group position={obj.position}>
-      <mesh ref={meshRef} userData={{ objId: obj.id }} scale={scale}>
+    <group position={obj.position} rotation={[0, obj.rotationY ?? 0, 0]} scale={obj.scale ?? 1}>
+      <mesh ref={meshRef} userData={{ objId: obj.id }} scale={highlightScale}>
         {obj.type === 'note' && <boxGeometry args={[0.5, 0.35, 0.05]} />}
         {obj.type === 'task' && <octahedronGeometry args={[0.3, 0]} />}
         {obj.type === 'idea' && <sphereGeometry args={[0.28, 16, 16]} />}

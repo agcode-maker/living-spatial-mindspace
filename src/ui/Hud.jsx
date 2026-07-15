@@ -41,7 +41,8 @@ export default function Hud() {
           <>
             WASD move · space/shift up/down · click to look around{'\n'}
             1 note · 2 task · 3 idea · 4 image · E pick up/drop · L link · R rename · backspace delete{'\n'}
-            G ask curator to organize · T talk to curator · C constellation view · H help · esc menu
+            scroll scale · Z/X rotate (while carrying) · G ask curator to organize · T talk to curator{'\n'}
+            C constellation view · H help · esc menu
             {linkFrom && ' — linking: look at a second object and press L'}
           </>
         ) : (

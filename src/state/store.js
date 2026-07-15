@@ -62,6 +62,8 @@ export const useWorld = create((set, get) => ({
       links: [],
       createdAt: now,
       lastTouched: now,
+      scale: 1,
+      rotationY: 0,
     };
     set((s) => ({ objects: [...s.objects, obj] }));
     get().persist();
@@ -83,6 +85,18 @@ export const useWorld = create((set, get) => ({
   moveObjectLive: (id, position) => {
     set((s) => ({
       objects: s.objects.map((o) => (o.id === id ? { ...o, position } : o)),
+    }));
+  },
+
+  scaleObjectLive: (id, scale) => {
+    set((s) => ({
+      objects: s.objects.map((o) => (o.id === id ? { ...o, scale } : o)),
+    }));
+  },
+
+  rotateObjectLive: (id, rotationY) => {
+    set((s) => ({
+      objects: s.objects.map((o) => (o.id === id ? { ...o, rotationY } : o)),
     }));
   },
 

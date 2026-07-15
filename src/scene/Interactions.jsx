@@ -20,6 +20,8 @@ export default function Interactions() {
   const pickUp = useWorld((s) => s.pickUp);
   const drop = useWorld((s) => s.drop);
   const moveObjectLive = useWorld((s) => s.moveObjectLive);
+  const scaleObjectLive = useWorld((s) => s.scaleObjectLive);
+  const rotateObjectLive = useWorld((s) => s.rotateObjectLive);
   const deleteObject = useWorld((s) => s.deleteObject);
   const beginOrCompleteLink = useWorld((s) => s.beginOrCompleteLink);
   const openEditor = useWorld((s) => s.openEditor);
@@ -96,6 +98,14 @@ export default function Interactions() {
         askCuratorToOrganize();
         return;
       }
+      if (e.code === 'KeyZ' || e.code === 'KeyX') {
+        if (!carryingId) return;
+        const obj = useWorld.getState().objects.find((o) => o.id === carryingId);
+        if (!obj) return;
+        const delta = e.code === 'KeyZ' ? -Math.PI / 8 : Math.PI / 8;
+        rotateObjectLive(carryingId, (obj.rotationY ?? 0) + delta);
+        return;
+      }
       if (e.code === 'KeyT') {
         document.exitPointerLock?.();
         openCuratorChat();
@@ -109,8 +119,20 @@ export default function Interactions() {
         if (useWorld.getState().pendingClusters.length > 0) rejectClusters();
       }
     }
+    function onWheel(e) {
+      const s = useWorld.getState();
+      if (!s.carryingId || s.editingId || s.curatorChatOpen || s.helpOpen) return;
+      const obj = s.objects.find((o) => o.id === s.carryingId);
+      if (!obj) return;
+      const next = THREE.MathUtils.clamp((obj.scale ?? 1) - e.deltaY * 0.001, 0.4, 2.5);
+      scaleObjectLive(s.carryingId, next);
+    }
     window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener('wheel', onWheel, { passive: true });
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('wheel', onWheel);
+    };
   }, [
     camera,
     carryingId,
@@ -128,6 +150,8 @@ export default function Interactions() {
     setCuratorMessage,
     setCuratorBusy,
     addCuratorLog,
+    scaleObjectLive,
+    rotateObjectLive,
   ]);
 
   return null;

@@ -46,6 +46,7 @@ export default function Onboarding() {
           <strong>1–4</strong> spawn a note / task / idea / image in front of you.<br />
           <strong>E</strong> picks up whatever you're looking at, <strong>E</strong> again drops it.<br />
           <strong>L</strong> links two objects, <strong>R</strong> renames, <strong>backspace</strong> deletes.<br />
+          While carrying: <strong>scroll</strong> scales it, <strong>Z</strong>/<strong>X</strong> rotate it.<br />
           <strong>G</strong> asks the curator to find connections, <strong>T</strong> talks to it directly.<br />
           <strong>C</strong> pulls back to a bird's-eye view of everything.<br />
           <strong>H</strong> reopens this panel anytime.
