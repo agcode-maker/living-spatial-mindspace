@@ -4,18 +4,19 @@ import * as THREE from 'three';
 import { useWorld } from '../state/store.js';
 import { summarizeSessionStart } from '../ai/curatorAgent.js';
 
-const WANDER_SPEED = 0.6;
-const WANDER_RADIUS = 3.5;
+const SEEK_SPEED = 1.4;
+const IDLE_WANDER_INTERVAL = 6; // seconds between idle wander target changes
+const HOVER_OFFSET = new THREE.Vector3(0.35, 0.55, 0.35);
 
-function randomWanderTarget() {
-  const angle = Math.random() * Math.PI * 2;
-  const radius = 1 + Math.random() * WANDER_RADIUS;
-  return new THREE.Vector3(Math.cos(angle) * radius, 1.6 + Math.random() * 1.2, Math.sin(angle) * radius);
+function objectPos(obj) {
+  return new THREE.Vector3(...obj.position);
 }
 
 export default function CuratorEntity() {
   const groupRef = useRef();
-  const target = useRef(randomWanderTarget());
+  const currentTarget = useRef(new THREE.Vector3(0, 2, 0));
+  const idleTarget = useRef(new THREE.Vector3(0, 2, 0));
+  const idleTimer = useRef(0);
   const [greeted, setGreeted] = useState(false);
 
   const objects = useWorld((s) => s.objects);
@@ -42,13 +43,52 @@ export default function CuratorEntity() {
 
   useFrame((_, delta) => {
     if (!groupRef.current) return;
+    const s = useWorld.getState();
     const pos = groupRef.current.position;
 
-    // Wander gently unless the chat panel is open (pause and "listen").
     if (!curatorChatOpen) {
-      const dist = pos.distanceTo(target.current);
-      if (dist < 0.15) target.current = randomWanderTarget();
-      pos.lerp(target.current, Math.min(1, WANDER_SPEED * delta));
+      let desired = null;
+
+      if (s.curatorBusy) {
+        // "Thinking" - hold still rather than drifting, so busy reads
+        // as deliberate rather than random.
+        desired = pos.clone();
+      } else if (s.pendingClusters.length > 0) {
+        // Hovers directly over the connection it's proposing - the
+        // movement itself points at what it means.
+        const [aId, bId] = s.pendingClusters[0];
+        const a = s.objects.find((o) => o.id === aId);
+        const b = s.objects.find((o) => o.id === bId);
+        if (a && b) {
+          desired = objectPos(a).add(objectPos(b)).multiplyScalar(0.5).add(HOVER_OFFSET);
+        }
+      } else if (s.carryingId) {
+        // Stays near whatever you're actively organizing.
+        const carried = s.objects.find((o) => o.id === s.carryingId);
+        if (carried) desired = objectPos(carried).add(HOVER_OFFSET);
+      } else if (s.targetedId) {
+        // Drifts toward whatever you're looking at - reads as "watching"
+        // what you're doing rather than being on an independent loop.
+        const targeted = s.objects.find((o) => o.id === s.targetedId);
+        if (targeted) desired = objectPos(targeted).add(HOVER_OFFSET);
+      } else {
+        // Idle: drift slowly among existing objects (or the origin, if
+        // the space is still empty) instead of wandering freely.
+        idleTimer.current -= delta;
+        if (idleTimer.current <= 0) {
+          idleTimer.current = IDLE_WANDER_INTERVAL;
+          if (s.objects.length > 0) {
+            const pick = s.objects[Math.floor(Math.random() * s.objects.length)];
+            idleTarget.current = objectPos(pick).add(HOVER_OFFSET);
+          } else {
+            idleTarget.current = new THREE.Vector3(0, 2, 0);
+          }
+        }
+        desired = idleTarget.current;
+      }
+
+      if (desired) currentTarget.current.copy(desired);
+      pos.lerp(currentTarget.current, Math.min(1, SEEK_SPEED * delta));
     }
 
     const t = performance.now() * 0.001;
