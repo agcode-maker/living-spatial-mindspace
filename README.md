@@ -33,6 +33,26 @@ npm run dev
 Open the printed localhost URL. Click into the window to lock the pointer
 and look around; WASD to move, space/shift for up/down.
 
+## Running as a desktop app (Electron)
+
+```bash
+npm run electron:dev
+```
+
+This launches Vite's dev server and an Electron window pointed at it, so you
+get the same fast reload loop as the browser. In this mode, world saves go
+to a real JSON file (via `electron/main.cjs` + `preload.cjs`) instead of
+localStorage — same persistence layer, no code changes needed elsewhere.
+
+## Building the submission executable
+
+```bash
+npm run electron:build
+```
+
+Produces a Windows installer/executable in `release/`. This is the
+"Executable Build" deliverable for submission.
+
 ## AI curator setup (optional for now)
 
 Copy `.env.example` to `.env` and add your key:
