@@ -7,10 +7,18 @@ export default function Hud() {
   const cancelLink = useWorld((s) => s.cancelLink);
   const toggleViewMode = useWorld((s) => s.toggleViewMode);
   const viewMode = useWorld((s) => s.viewMode);
+  const toggleHelp = useWorld((s) => s.toggleHelp);
 
   useEffect(() => {
     function onKeyDown(e) {
-      if (useWorld.getState().editingId || useWorld.getState().curatorChatOpen || !useWorld.getState().onboarded) return;
+      const s = useWorld.getState();
+      if (s.editingId || s.curatorChatOpen || !s.onboarded) return;
+      if (e.code === 'KeyH') {
+        document.exitPointerLock?.();
+        toggleHelp();
+        return;
+      }
+      if (s.helpOpen) return;
       if (e.code === 'KeyC') {
         document.exitPointerLock?.();
         toggleViewMode();
@@ -23,7 +31,7 @@ export default function Hud() {
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [returnToMenu, linkFrom, cancelLink, toggleViewMode]);
+  }, [returnToMenu, linkFrom, cancelLink, toggleViewMode, toggleHelp]);
 
   return (
     <>
@@ -33,7 +41,7 @@ export default function Hud() {
           <>
             WASD move · space/shift up/down · click to look around{'\n'}
             1 note · 2 task · 3 idea · 4 image · E pick up/drop · L link · R rename · backspace delete{'\n'}
-            G ask curator to organize · T talk to curator · C constellation view · esc menu
+            G ask curator to organize · T talk to curator · C constellation view · H help · esc menu
             {linkFrom && ' — linking: look at a second object and press L'}
           </>
         ) : (

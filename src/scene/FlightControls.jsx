@@ -27,7 +27,7 @@ export default function FlightControls() {
   const move = new THREE.Vector3();
 
   useFrame((_, delta) => {
-    if (useWorld.getState().editingId || useWorld.getState().curatorChatOpen || !useWorld.getState().onboarded) return;
+    if (useWorld.getState().editingId || useWorld.getState().curatorChatOpen || useWorld.getState().helpOpen || !useWorld.getState().onboarded) return;
     const k = keys.current;
     camera.getWorldDirection(forward);
     forward.y = 0;

@@ -35,7 +35,7 @@ export default function Interactions() {
   // being looked at, and keep any carried object glued in front of the camera.
   useFrame(() => {
     const s = useWorld.getState();
-    if (s.editingId || s.curatorChatOpen || !s.onboarded) return;
+    if (s.editingId || s.curatorChatOpen || s.helpOpen || !s.onboarded) return;
     raycaster.current.setFromCamera({ x: 0, y: 0 }, camera);
     const hits = raycaster.current.intersectObjects(scene.children, true);
     const hit = hits.find((h) => h.object.userData?.objId && h.distance < TARGET_DISTANCE);
@@ -64,7 +64,7 @@ export default function Interactions() {
       // While the rename panel or curator chat is open, let the input
       // field handle keys - don't spawn objects, move, or fly the camera.
       const s = useWorld.getState();
-      if (s.editingId || s.curatorChatOpen || !s.onboarded) return;
+      if (s.editingId || s.curatorChatOpen || s.helpOpen || !s.onboarded) return;
 
       if (TYPE_KEYS[e.code]) {
         addObject(TYPE_KEYS[e.code], pointInFrontOfCamera(camera, 2.5));

@@ -31,16 +31,18 @@ export const useWorld = create((set, get) => ({
   pendingClusters: [], // [[idA, idB], ...] suggested links awaiting accept/reject
   curatorChatOpen: false,
   onboarded: saved?.onboarded ?? false,
+  helpOpen: false, // manually toggled recap of controls, independent of first-run onboarding
 
   completeOnboarding: () => {
     set({ onboarded: true });
     get().persist();
   },
+  toggleHelp: () => set((s) => ({ helpOpen: !s.helpOpen })),
 
   enterWorld: () => set({ sessionState: 'exploring', targetedId: null, carryingId: null, linkFrom: null, editingId: null, viewMode: 'first-person' }),
   returnToMenu: () => {
     get().persist();
-    set({ sessionState: 'menu', targetedId: null, carryingId: null, linkFrom: null, editingId: null, viewMode: 'first-person', curatorChatOpen: false });
+    set({ sessionState: 'menu', targetedId: null, carryingId: null, linkFrom: null, editingId: null, viewMode: 'first-person', curatorChatOpen: false, helpOpen: false });
   },
 
   openEditor: (id) => set({ editingId: id }),
