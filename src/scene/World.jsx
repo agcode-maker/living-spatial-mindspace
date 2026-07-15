@@ -5,6 +5,8 @@ import FlightControls from './FlightControls.jsx';
 import KnowledgeObject from './KnowledgeObject.jsx';
 import Links from './Links.jsx';
 import Interactions from './Interactions.jsx';
+import CuratorEntity from './CuratorEntity.jsx';
+import ClusterPreview from './ClusterPreview.jsx';
 
 export default function World() {
   const objects = useWorld((s) => s.objects);
@@ -27,6 +29,8 @@ export default function World() {
       />
 
       <Links />
+      <ClusterPreview />
+      <CuratorEntity />
       {objects.map((obj) => (
         <KnowledgeObject key={obj.id} obj={obj} />
       ))}

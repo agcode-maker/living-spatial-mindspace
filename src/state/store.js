@@ -3,6 +3,9 @@ import { loadWorld, saveWorld } from './persistence.js';
 
 // A knowledge object shape:
 // { id, type: 'note'|'task'|'idea'|'image', label, position: [x,y,z], color, links: [id, ...] }
+//
+// A curator log entry shape:
+// { at: timestamp, text: string }
 
 function makeId() {
   return Math.random().toString(36).slice(2, 10);
@@ -21,10 +24,17 @@ export const useWorld = create((set, get) => ({
   editingId: null, // object currently open in the rename panel
   viewMode: 'first-person', // 'first-person' | 'constellation'
 
+  // --- Curator state ---
+  curatorLog: saved?.curatorLog ?? [], // persists across sessions - its "memory"
+  curatorMessage: null, // what it's currently saying, shown in the caption bubble
+  curatorBusy: false, // true while waiting on the LLM API
+  pendingClusters: [], // [[idA, idB], ...] suggested links awaiting accept/reject
+  curatorChatOpen: false,
+
   enterWorld: () => set({ sessionState: 'exploring', targetedId: null, carryingId: null, linkFrom: null, editingId: null, viewMode: 'first-person' }),
   returnToMenu: () => {
     get().persist();
-    set({ sessionState: 'menu', targetedId: null, carryingId: null, linkFrom: null, editingId: null, viewMode: 'first-person' });
+    set({ sessionState: 'menu', targetedId: null, carryingId: null, linkFrom: null, editingId: null, viewMode: 'first-person', curatorChatOpen: false });
   },
 
   openEditor: (id) => set({ editingId: id }),
@@ -73,6 +83,7 @@ export const useWorld = create((set, get) => ({
       targetedId: s.targetedId === id ? null : s.targetedId,
       carryingId: s.carryingId === id ? null : s.carryingId,
       linkFrom: s.linkFrom === id ? null : s.linkFrom,
+      pendingClusters: s.pendingClusters.filter(([a, b]) => a !== id && b !== id),
     }));
     get().persist();
   },
@@ -110,11 +121,42 @@ export const useWorld = create((set, get) => ({
   cancelLink: () => set({ linkFrom: null }),
 
   resetWorld: () => {
-    set({ objects: [], targetedId: null, carryingId: null, linkFrom: null });
+    set({ objects: [], targetedId: null, carryingId: null, linkFrom: null, curatorLog: [], pendingClusters: [] });
     get().persist();
   },
 
-  persist: () => saveWorld({ objects: get().objects }),
+  // --- Curator actions ---
+  setCuratorMessage: (text) => set({ curatorMessage: text }),
+  setCuratorBusy: (busy) => set({ curatorBusy: busy }),
+
+  addCuratorLog: (text) => {
+    set((s) => ({ curatorLog: [...s.curatorLog, { at: Date.now(), text }].slice(-20) }));
+    get().persist();
+  },
+
+  setPendingClusters: (pairs) => set({ pendingClusters: pairs }),
+
+  acceptClusters: () => {
+    const { pendingClusters, objects } = get();
+    if (pendingClusters.length === 0) return;
+    const byId = Object.fromEntries(objects.map((o) => [o.id, o]));
+    const nextObjects = objects.map((o) => ({ ...o, links: [...o.links] }));
+    const nextById = Object.fromEntries(nextObjects.map((o) => [o.id, o]));
+    for (const [a, b] of pendingClusters) {
+      if (!byId[a] || !byId[b]) continue;
+      if (!nextById[a].links.includes(b)) nextById[a].links.push(b);
+      if (!nextById[b].links.includes(a)) nextById[b].links.push(a);
+    }
+    set({ objects: nextObjects, pendingClusters: [] });
+    get().persist();
+  },
+
+  rejectClusters: () => set({ pendingClusters: [] }),
+
+  openCuratorChat: () => set({ curatorChatOpen: true }),
+  closeCuratorChat: () => set({ curatorChatOpen: false }),
+
+  persist: () => saveWorld({ objects: get().objects, curatorLog: get().curatorLog }),
 }));
 
 function colorFor(type) {

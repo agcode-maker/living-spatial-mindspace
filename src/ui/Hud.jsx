@@ -10,7 +10,7 @@ export default function Hud() {
 
   useEffect(() => {
     function onKeyDown(e) {
-      if (useWorld.getState().editingId) return;
+      if (useWorld.getState().editingId || useWorld.getState().curatorChatOpen) return;
       if (e.code === 'KeyC') {
         document.exitPointerLock?.();
         toggleViewMode();
@@ -33,7 +33,7 @@ export default function Hud() {
           <>
             WASD move · space/shift up/down · click to look around{'\n'}
             1 note · 2 task · 3 idea · 4 image · E pick up/drop · L link · R rename · backspace delete{'\n'}
-            C constellation view · esc menu
+            G ask curator to organize · T talk to curator · C constellation view · esc menu
             {linkFrom && ' — linking: look at a second object and press L'}
           </>
         ) : (

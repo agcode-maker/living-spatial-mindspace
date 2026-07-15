@@ -3,6 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useWorld } from '../state/store.js';
 import { pointInFrontOfCamera } from './spatial.js';
+import { suggestClusters } from '../ai/curatorAgent.js';
 
 const TYPE_KEYS = { Digit1: 'note', Digit2: 'task', Digit3: 'idea', Digit4: 'image' };
 const TARGET_DISTANCE = 6; // how far the crosshair can "reach"
@@ -22,11 +23,19 @@ export default function Interactions() {
   const deleteObject = useWorld((s) => s.deleteObject);
   const beginOrCompleteLink = useWorld((s) => s.beginOrCompleteLink);
   const openEditor = useWorld((s) => s.openEditor);
+  const openCuratorChat = useWorld((s) => s.openCuratorChat);
+  const acceptClusters = useWorld((s) => s.acceptClusters);
+  const rejectClusters = useWorld((s) => s.rejectClusters);
+  const setPendingClusters = useWorld((s) => s.setPendingClusters);
+  const setCuratorMessage = useWorld((s) => s.setCuratorMessage);
+  const setCuratorBusy = useWorld((s) => s.setCuratorBusy);
+  const addCuratorLog = useWorld((s) => s.addCuratorLog);
 
   // Every frame: raycast straight out from the crosshair to find what's
   // being looked at, and keep any carried object glued in front of the camera.
   useFrame(() => {
-    if (useWorld.getState().editingId) return;
+    const s = useWorld.getState();
+    if (s.editingId || s.curatorChatOpen) return;
     raycaster.current.setFromCamera({ x: 0, y: 0 }, camera);
     const hits = raycaster.current.intersectObjects(scene.children, true);
     const hit = hits.find((h) => h.object.userData?.objId && h.distance < TARGET_DISTANCE);
@@ -38,10 +47,24 @@ export default function Interactions() {
   });
 
   useEffect(() => {
+    async function askCuratorToOrganize() {
+      const s = useWorld.getState();
+      if (s.curatorBusy) return;
+      setCuratorBusy(true);
+      const { pairs, note } = await suggestClusters(s.objects);
+      setPendingClusters(pairs);
+      setCuratorMessage(
+        pairs.length > 0 ? note || `I found ${pairs.length} connection(s) worth drawing.` : note || "I don't see any new connections to make right now."
+      );
+      addCuratorLog(note || 'Reviewed the space for connections.');
+      setCuratorBusy(false);
+    }
+
     function onKeyDown(e) {
-      // While the rename panel is open, let the input field handle keys -
-      // don't spawn objects, move objects, or fly the camera.
-      if (useWorld.getState().editingId) return;
+      // While the rename panel or curator chat is open, let the input
+      // field handle keys - don't spawn objects, move, or fly the camera.
+      const s = useWorld.getState();
+      if (s.editingId || s.curatorChatOpen) return;
 
       if (TYPE_KEYS[e.code]) {
         addObject(TYPE_KEYS[e.code], pointInFrontOfCamera(camera, 2.5));
@@ -67,11 +90,45 @@ export default function Interactions() {
         if (!id) return;
         document.exitPointerLock?.();
         openEditor(id);
+        return;
+      }
+      if (e.code === 'KeyG') {
+        askCuratorToOrganize();
+        return;
+      }
+      if (e.code === 'KeyT') {
+        document.exitPointerLock?.();
+        openCuratorChat();
+        return;
+      }
+      if (e.code === 'KeyY') {
+        if (useWorld.getState().pendingClusters.length > 0) acceptClusters();
+        return;
+      }
+      if (e.code === 'KeyN') {
+        if (useWorld.getState().pendingClusters.length > 0) rejectClusters();
       }
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [camera, carryingId, targetedId, addObject, pickUp, drop, beginOrCompleteLink, deleteObject, openEditor]);
+  }, [
+    camera,
+    carryingId,
+    targetedId,
+    addObject,
+    pickUp,
+    drop,
+    beginOrCompleteLink,
+    deleteObject,
+    openEditor,
+    openCuratorChat,
+    acceptClusters,
+    rejectClusters,
+    setPendingClusters,
+    setCuratorMessage,
+    setCuratorBusy,
+    addCuratorLog,
+  ]);
 
   return null;
 }
