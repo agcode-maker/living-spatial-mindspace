@@ -44,6 +44,7 @@ export const useWorld = create((set, get) => ({
     set((s) => ({ viewMode: s.viewMode === 'first-person' ? 'constellation' : 'first-person' })),
 
   addObject: (type, position) => {
+    const now = Date.now();
     const obj = {
       id: makeId(),
       type,
@@ -51,7 +52,8 @@ export const useWorld = create((set, get) => ({
       position,
       color: colorFor(type),
       links: [],
-      createdAt: Date.now(),
+      createdAt: now,
+      lastTouched: now,
     };
     set((s) => ({ objects: [...s.objects, obj] }));
     get().persist();
@@ -59,9 +61,10 @@ export const useWorld = create((set, get) => ({
   },
 
   // Persists immediately - use for discrete edits (rename, link, etc).
+  // Also stamps lastTouched so the object's visual "recency glow" resets.
   updateObject: (id, patch) => {
     set((s) => ({
-      objects: s.objects.map((o) => (o.id === id ? { ...o, ...patch } : o)),
+      objects: s.objects.map((o) => (o.id === id ? { ...o, ...patch, lastTouched: Date.now() } : o)),
     }));
     get().persist();
   },
@@ -89,7 +92,12 @@ export const useWorld = create((set, get) => ({
   },
 
   setTargeted: (id) => set({ targetedId: id }),
-  pickUp: (id) => set({ carryingId: id }),
+  pickUp: (id) => {
+    set((s) => ({
+      carryingId: id,
+      objects: s.objects.map((o) => (o.id === id ? { ...o, lastTouched: Date.now() } : o)),
+    }));
+  },
   drop: () => {
     get().persist();
     set({ carryingId: null });
@@ -109,8 +117,9 @@ export const useWorld = create((set, get) => ({
     }
     set({
       objects: objects.map((o) => {
-        if (o.id === linkFrom && !o.links.includes(id)) return { ...o, links: [...o.links, id] };
-        if (o.id === id && !o.links.includes(linkFrom)) return { ...o, links: [...o.links, linkFrom] };
+        const now = Date.now();
+        if (o.id === linkFrom && !o.links.includes(id)) return { ...o, links: [...o.links, id], lastTouched: now };
+        if (o.id === id && !o.links.includes(linkFrom)) return { ...o, links: [...o.links, linkFrom], lastTouched: now };
         return o;
       }),
       linkFrom: null,
@@ -144,8 +153,9 @@ export const useWorld = create((set, get) => ({
     const nextById = Object.fromEntries(nextObjects.map((o) => [o.id, o]));
     for (const [a, b] of pendingClusters) {
       if (!byId[a] || !byId[b]) continue;
-      if (!nextById[a].links.includes(b)) nextById[a].links.push(b);
-      if (!nextById[b].links.includes(a)) nextById[b].links.push(a);
+      const now = Date.now();
+      if (!nextById[a].links.includes(b)) { nextById[a].links.push(b); nextById[a].lastTouched = now; }
+      if (!nextById[b].links.includes(a)) { nextById[b].links.push(a); nextById[b].lastTouched = now; }
     }
     set({ objects: nextObjects, pendingClusters: [] });
     get().persist();

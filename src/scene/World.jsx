@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Grid, PerspectiveCamera, OrbitControls } from '@react-three/drei';
 import { useWorld } from '../state/store.js';
@@ -7,18 +8,22 @@ import Links from './Links.jsx';
 import Interactions from './Interactions.jsx';
 import CuratorEntity from './CuratorEntity.jsx';
 import ClusterPreview from './ClusterPreview.jsx';
+import AtmosphereController from './AtmosphereController.jsx';
 
 export default function World() {
   const objects = useWorld((s) => s.objects);
   const viewMode = useWorld((s) => s.viewMode);
+  const ambientRef = useRef();
+  const pointRef = useRef();
 
   return (
     <Canvas camera={{ position: [0, 1.6, 6], fov: 65 }} shadows>
       <color attach="background" args={['#05060a']} />
       <fog attach="fog" args={['#05060a', 8, 30]} />
-      <ambientLight intensity={0.35} />
-      <pointLight position={[0, 4, 0]} intensity={1.1} color="#7ea8ff" distance={20} decay={2} />
+      <ambientLight ref={ambientRef} intensity={0.35} />
+      <pointLight ref={pointRef} position={[0, 4, 0]} intensity={1.1} color="#7ea8ff" distance={20} decay={2} />
       <hemisphereLight args={['#1a2440', '#05060a', 0.4]} />
+      <AtmosphereController ambientRef={ambientRef} pointRef={pointRef} />
 
       <Grid
         args={[40, 40]}
