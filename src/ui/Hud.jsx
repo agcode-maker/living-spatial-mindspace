@@ -10,7 +10,7 @@ export default function Hud() {
 
   useEffect(() => {
     function onKeyDown(e) {
-      if (useWorld.getState().editingId || useWorld.getState().curatorChatOpen) return;
+      if (useWorld.getState().editingId || useWorld.getState().curatorChatOpen || !useWorld.getState().onboarded) return;
       if (e.code === 'KeyC') {
         document.exitPointerLock?.();
         toggleViewMode();

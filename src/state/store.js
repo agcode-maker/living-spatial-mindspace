@@ -30,6 +30,12 @@ export const useWorld = create((set, get) => ({
   curatorBusy: false, // true while waiting on the LLM API
   pendingClusters: [], // [[idA, idB], ...] suggested links awaiting accept/reject
   curatorChatOpen: false,
+  onboarded: saved?.onboarded ?? false,
+
+  completeOnboarding: () => {
+    set({ onboarded: true });
+    get().persist();
+  },
 
   enterWorld: () => set({ sessionState: 'exploring', targetedId: null, carryingId: null, linkFrom: null, editingId: null, viewMode: 'first-person' }),
   returnToMenu: () => {
@@ -166,7 +172,7 @@ export const useWorld = create((set, get) => ({
   openCuratorChat: () => set({ curatorChatOpen: true }),
   closeCuratorChat: () => set({ curatorChatOpen: false }),
 
-  persist: () => saveWorld({ objects: get().objects, curatorLog: get().curatorLog }),
+  persist: () => saveWorld({ objects: get().objects, curatorLog: get().curatorLog, onboarded: get().onboarded }),
 }));
 
 function colorFor(type) {

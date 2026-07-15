@@ -17,7 +17,7 @@ export default function World() {
   const pointRef = useRef();
 
   return (
-    <Canvas camera={{ position: [0, 1.6, 6], fov: 65 }} shadows>
+    <Canvas camera={{ position: [0, 1.6, 6], fov: 65 }} dpr={[1, 1.5]}>
       <color attach="background" args={['#05060a']} />
       <fog attach="fog" args={['#05060a', 8, 30]} />
       <ambientLight ref={ambientRef} intensity={0.35} />

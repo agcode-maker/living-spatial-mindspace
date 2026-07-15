@@ -5,6 +5,7 @@ import MainMenu from './ui/MainMenu.jsx';
 import EditPanel from './ui/EditPanel.jsx';
 import CuratorBubble from './ui/CuratorBubble.jsx';
 import CuratorChatPanel from './ui/CuratorChatPanel.jsx';
+import Onboarding from './ui/Onboarding.jsx';
 
 export default function App() {
   const sessionState = useWorld((s) => s.sessionState);
@@ -18,6 +19,7 @@ export default function App() {
       <EditPanel />
       <CuratorBubble />
       <CuratorChatPanel />
+      <Onboarding />
     </>
   );
 }
