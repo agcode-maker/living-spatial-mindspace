@@ -122,13 +122,14 @@ export default function Interactions() {
     function onWheel(e) {
       const s = useWorld.getState();
       if (!s.carryingId || s.editingId || s.curatorChatOpen || s.helpOpen) return;
+      e.preventDefault(); // stop the browser's own pinch/ctrl-scroll zoom from also firing
       const obj = s.objects.find((o) => o.id === s.carryingId);
       if (!obj) return;
       const next = THREE.MathUtils.clamp((obj.scale ?? 1) - e.deltaY * 0.001, 0.4, 2.5);
       scaleObjectLive(s.carryingId, next);
     }
     window.addEventListener('keydown', onKeyDown);
-    window.addEventListener('wheel', onWheel, { passive: true });
+    window.addEventListener('wheel', onWheel, { passive: false });
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('wheel', onWheel);
