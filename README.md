@@ -14,7 +14,7 @@ hardware — no dedicated GPU required, no heavy game-engine install.
 
 Watch the full project demo here:
 
-**▶ [The Archive - Project Demo](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)**
+**[The Archive - Project Demo](https://youtu.be/U8hX6osK43A?si=RTw4WymFnJHDJBOs)**
 
 ## Table of contents
 
