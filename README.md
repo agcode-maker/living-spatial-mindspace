@@ -8,13 +8,20 @@ inside the world and actively helps organize it.
 Built with React Three Fiber (Three.js) so it runs entirely on modest
 hardware — no dedicated GPU required, no heavy game-engine install.
 
+
 ![Knowledge objects in the space, connected by threads](docs/screenshots/knowledge-objects.png)
+
 
 ## Demo Video
 
+
 Watch the full project demo here:
 
+
 [![Watch the Demo](https://img.youtube.com/vi/U8hX6osK43A/maxresdefault.jpg)](https://www.youtube.com/watch?v=U8hX6osK43A)
+
+
+---
 
 ## Technical Report
 
