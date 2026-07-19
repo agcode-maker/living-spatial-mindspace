@@ -22,12 +22,6 @@ Watch the full project demo here:
 
 ---
 
-## Technical Report
-
-[![Technical Report Cover](docs/screenshots/report-cover.png)](The-Archive-Technical-Report.pdf)
-
-*Click the cover to open the full report.*
-
 ## Table of contents
 
 - [What this is](#what-this-is)
