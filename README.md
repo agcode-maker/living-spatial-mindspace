@@ -16,6 +16,12 @@ Watch the full project demo here:
 
 [![Watch the Demo](https://img.youtube.com/vi/U8hX6osK43A/maxresdefault.jpg)](https://www.youtube.com/watch?v=U8hX6osK43A)
 
+## Technical Report
+
+**[Read the Technical Report](The-Archive-Technical-Report.pdf)**
+
+---
+
 ## Table of contents
 
 - [What this is](#what-this-is)
