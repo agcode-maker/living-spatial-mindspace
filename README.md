@@ -10,6 +10,12 @@ hardware — no dedicated GPU required, no heavy game-engine install.
 
 ![Knowledge objects in the space, connected by threads](docs/screenshots/knowledge-objects.png)
 
+## Demo Video
+
+Watch the full project demo here:
+
+**▶ [The Archive - Project Demo](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)**
+
 ## Table of contents
 
 - [What this is](#what-this-is)
