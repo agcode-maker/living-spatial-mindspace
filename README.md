@@ -26,7 +26,7 @@ hardware — no dedicated GPU required, no heavy game-engine install.
 ## What this is
 
 Most digital workspaces are flat — folders, tabs, lists. The Archive puts
-your notes, tasks, ideas, and files inside an actual 3D space you walk
+your notes, tasks, ideas, and images inside an actual 3D space you walk
 through, carry things around in, and physically connect to each other. The
 space remembers exactly how you left it, and an AI curator embedded in the
 world (not a chat sidebar bolted on the side) helps you notice connections
